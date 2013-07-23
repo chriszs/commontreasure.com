@@ -1,0 +1,174 @@
+<html>
+<head>
+
+<meta charset="utf-8">
+
+<style type="text/css">
+body {
+  font-family: Verdana,sans-serif;
+  font-size: 12px;
+}
+.axis line,
+.axis path {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+.agency text {
+  font-size: 9px;
+}
+</style>
+
+</head>
+<body>
+
+<div id="graph"></div>
+
+<script type="text/javascript" src="d3.v3.js"></script>
+<script type="text/javascript">
+function init () {
+   var margin = 100,
+    width = 4000-(margin*2),
+    height = 800-(margin*2);
+
+  function dateComparison (d1, d2) {
+    if (d1.date > d2.date) return 1;
+    if (d1.date < d2.date) return -1;
+    return 0;
+  }
+
+  var svg = d3.select("#graph")
+        .append("svg")
+          .attr("width",width+(margin*2))
+          .attr("height",height+(margin*2));
+
+  var parseDate = d3.time.format("%m/%y").parse;
+
+  var color = d3.scale.category20();
+/*
+  var line = d3.svg.line()
+          .interpolate("linear"); */
+
+  var yScale = d3.scale.linear()
+    .range([height,0]);
+  var yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left");
+
+  var xScale = d3.time.scale()
+    .range([0,width]);
+  var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .ticks(d3.time.years,1);
+
+  var area = d3.svg.area()
+      .x(function(d) { return xScale(d.date); })
+      .y0(function(d) { return yScale(d.y0); })
+      .y1(function(d) { return yScale(d.y0 + d.y); });
+
+  var stack = d3.layout.stack()
+    .values(function(d) { return d.values; });
+
+  d3.json("agencyoutlays.json",function (err,data) {
+    color.domain(d3.keys(data[0]).filter(function(key) {
+      return key !== "date";
+    }));
+
+    data.forEach(function (d) {
+      d.date = parseDate(d.date);
+    });
+
+    data.sort(dateComparison);
+
+    var agencies = color.domain()
+      .map(function(name) {
+        return {
+          name: name,
+          values: data.map(function(d) {
+            if (!isNaN(+d[name])) {
+              return {
+                date: d.date,
+                y: +d[name]
+              };
+            }
+            else {
+              return {
+                date: d.date,
+                y: 0
+              };
+            }
+          })
+        };
+      });
+
+    yScale.domain([0,d3.max(agencies, function(c) {
+      return d3.max(c.values, function(v) {
+        return v.y;
+      });
+    })]);
+
+    xScale.domain(d3.extent(data, function (d) {
+        return d.date;
+      }));
+
+
+
+    agencies = stack(agencies.filter(function(d) {
+      return d.name !== "Total";
+    }));
+/*
+    line.x(function (d) {
+        return xScale(d.date);
+      })
+      .y(function (d) {
+        return yScale(d.total);
+      });*/
+
+    var agency = svg.selectAll(".agency")
+      .data(agencies)
+      .enter()
+      .append("g")
+      .attr("transform", "translate(" + margin + "," + margin + ")")
+      .attr("class","agency");
+
+    agency.append("path")
+      .attr("class","area")
+      .attr("d", function(d) {
+        return area(d.values);
+      })
+      .style("fill", function(d) {
+        return color(d.name);
+      });
+
+    agency.append("text")
+      .datum(function(d) {
+        return {
+          name: d.name,
+          value: d.values[d.values.length - 1]
+        };
+      })
+      .attr("transform", function(d) {
+        return "translate(" + xScale(d.value.date) + "," + yScale(d.value.y0 + d.value.y / 2) + ")";
+      })
+      .attr("x", -6)
+      .attr("dy", ".35em")
+      .text(function(d) {
+        return d.name;
+      });
+
+    svg.append("g")
+      .attr("transform", "translate(" + (margin - 4) + "," + margin + ")")
+      .attr("class","axis")
+      .call(yAxis);
+
+    svg.append("g")
+      .attr("transform", "translate(" + (margin - 4) + "," + (height + margin) + ")")
+      .attr("class","axis")
+      .call(xAxis);
+
+  });
+}
+init();
+</script>
+</body>
+</html>

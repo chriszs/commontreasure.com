@@ -1,0 +1,14 @@
+Options -MultiViews
+Options +FollowSymLinks
+RewriteEngine On
+
+# RewriteRule ^/?$ /budget/lines.php
+
+RewriteRule ^(agency|bureau).php /budget/lines.php [QSA,R]
+
+<Files ~ "\.(ini|htaccess)$">
+order allow,deny
+deny from all
+</Files>
+
+# AddType x-mapp-php5 .php

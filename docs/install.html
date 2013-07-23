@@ -1,0 +1,26 @@
+<h2><a href="../">2010</a> &raquo; Installation Instructions</h2>
+<ol>
+<li>Open <a href="../license.txt">license.txt</a> and familiarize yourself with the terms under which you are permitted
+	to use the software (GPLv3). Please pay particular attention to the part which attempts
+	to shield me from liability if you screw up while using these steps.</li>
+	
+<li>Download the budget CSV files from the Office of Management and Budget website
+	or Data.gov. Currently available here: <a href="http://www.whitehouse.gov/omb/budget/Supplemental/">http://www.whitehouse.gov/omb/budget/Supplemental/</a></li>
+	
+<li>Open <a href="install.sql">docs/install.sql</a> and change &lt;REPLACE WITH PATH TO FILE&gt; to the path to budgetauth.csv,
+	outlays.csv, and receipts.csv.
+	<br />
+	<br />
+	If you are on a shared server you might either need to do steps 3-4 on a local machine first
+	and then export and import the resulting SQL, or use a different method to import the CSV file.</li>
+	
+<li>Run <a href="install.sql">docs/install.sql</a> in MySQL. I used version 5, but 4 should work without much modification.</li>
+
+<li>Unpack the source files into a directory on a PHP capable webserver. PHP needs to be
+	version 5.</li>
+	
+<li>Open <a href="../config.ini">config.ini</a> and change the MySQL settings to match your configuration.</li>
+
+<li>Hopefully the site should now work. If it doesn't, try commenting in the line
+	"AddType x-mapp-php5 .php" in <a href="../.htaccess">.htaccess</a> by putting a pound sign (#) in front of it.</li>
+</ol>
